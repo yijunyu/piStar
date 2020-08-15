@@ -3,11 +3,13 @@ TARGETS += README.js
 all: $(TARGETS)
 
 %.js: index.js %
-	merge.sh $* 
+	./merge.sh $* 
 
 package.json: 
 	npm init
 	npm install antlr4
+	npm install uuid
+	npm install dagre
 
 %.js: istar2.js %.istar2
 	node istar2.js $*.istar2
@@ -24,7 +26,7 @@ OS=$(shell uname -s)
 ifeq ($(OS),Darwin)
 	antlr=antlr
 else
-	antlr=antlr4
+	antlr=./antlr4
 endif
 
 iStar2Parser.js iStar2Lexer.js iStar2ParserVisitor.js: iStar2Parser.g4 iStar2Lexer.g4

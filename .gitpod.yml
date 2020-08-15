@@ -1,0 +1,5 @@
+ports:
+     onOpen: open-preview
+tasks:
+   - before: cp .bashrc ~/.bashrc
+     command: . .bashrc 
