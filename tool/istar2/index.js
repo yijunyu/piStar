@@ -107,7 +107,7 @@ function enumerate_children(goalmodel, node, lines, linenos, lineno) {
 	var text = ""
 	for (var i = 0; i < node.level + 1; i++)
 		text += "    "
-	text += "" + (used[node.id]?lineno:"")
+	text += "" + lineno
 		+ (goalmodel.display != null && goalmodel.display[node.id] != null && goalmodel.display[node.id].backgroundColor != null && goalmodel.display[node.id].backgroundColor != "CCFACD" ?
 			" " + toCompletion(goalmodel.display[node.id].backgroundColor) : "")
 		+ " " + node.type.substring(6).toLowerCase()
@@ -221,21 +221,6 @@ function convert_json_to_istar2(model, output_filename) {
 	if (goalmodel.diagram.selected_actor != null) {
 		goalmodel.diagram.layout = true
 	}
-	used = []
-	goalmodel.links.forEach(function(l){
-		switch(l.type) {
-			case "istar.ContributionLink":
-				used[l.target] = true
-				break;
-		}
-	});
-	goalmodel.dependencies.forEach(function(l){
-		switch(l.type) {
-			case "istar.DependencyLink":
-				used[l.target] = true
-				break;
-		}
-	});
 	for (a in goalmodel.actors) {
 		var actor = goalmodel.actors[a]
 		if (goalmodel.diagram != null && goalmodel.diagram.selected_actor != null && actor.id != goalmodel.diagram.selected_actor)
@@ -244,7 +229,7 @@ function convert_json_to_istar2(model, output_filename) {
 			linenos[actor.id] = lineno
 			nodes[actor.id] = actor
 			actor.lineno = lineno
-			lines[lineno] = "" + (used[actor.id]?lineno:"")
+			lines[lineno] = "" + lineno
 				+ ((goalmodel.diagram != null && goalmodel.diagram.selected_actor != null) ? (" " + actor.layout) :
 					((goalmodel.display != null && goalmodel.display[actor.id] != null && goalmodel.display[actor.id].collapsed == false) ? " " + actor.layout : ""))
 				+ (goalmodel.display != null && goalmodel.display[actor.id] != null && goalmodel.display[actor.id].backgroundColor != null ?
@@ -270,7 +255,7 @@ function convert_json_to_istar2(model, output_filename) {
 	for (d in goalmodel.dependencies) {
 		dependency = goalmodel.dependencies[d]
 		type = dependency.type.substring(6).toLowerCase();
-		text = "" + (used[dependency.id]?lineno:"") + " " + type + " {" + dependency.text.replace(/}/g, "\\}") + "} "
+		text = "" + lineno + " " + type + " {" + dependency.text.replace(/}/g, "\\}") + "} "
 			+ ((dependency.customProperties != null && dependency.customProperties.Description != null && dependency.customProperties.Description != "") ? " {" + dependency.customProperties.Description.replace(/}/g, "\\}") + "}" : "")
 			+ (goalmodel.diagram.layout ? "" : ("@" + dependency.x + "," + dependency.y + " "))
 		linenos[dependency.id] = lineno
