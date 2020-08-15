@@ -215,7 +215,7 @@ ui.components.PropertiesTableView = Backbone.View.extend({
         'use strict';
 
         $('#cell-actions').append(
-            '<a id="collapse-expand-actor-button" class="btn btn-default btn-xs button-horizontal" title="Shortcut: alt+click the actor">Collapse/Expand</a><br>'
+            '<a id="collapse-expand-actor-button" class="btn btn-default btn-xs button-horizontal" title="Shortcut: ctrl/alt+click the actor">Collapse/Expand</a><br><a id="layout-actor-button" class="btn btn-default btn-xs button-horizontal" title="Shortcut: shift+click the actor">Layout</a><br>'
         );
         $('#collapse-expand-actor-button').click(function (e) {
             if (ui.getSelectedCells()) {
@@ -223,7 +223,14 @@ ui.components.PropertiesTableView = Backbone.View.extend({
                 ui.getSelectedCells()[0].toggleCollapse();
                 ui.showSelection();//give the focus back to actor, now collapsed or expanded
             }
-
+            ui.collectActionData('click', e.currentTarget.id);
+        });
+        $('#layout-actor-button').click(function (e) {
+            if (ui.getSelectedCells()) {
+                ui.hideSelection();
+                ui.getSelectedCells()[0].layout();
+                ui.showSelection();
+            }
             ui.collectActionData('click', e.currentTarget.id);
         });
     },

@@ -86,6 +86,7 @@ istar.fileManager = function() {
             var diagram = {width: 1300, height: 1300};
             diagram.width = istar.paper.getArea().width;
             diagram.height = istar.paper.getArea().height;
+            diagram.selected_actor = istar.fileManager.selected_actor
             if (istar.graph.prop('name')) {
                 diagram.name = istar.graph.prop('name');
             }
@@ -118,6 +119,7 @@ istar.fileManager = function() {
                     //it is necessary to expand collapsed actors in order
                     //to get proper sources and targets for any dependency links
                     if (element.prop('collapsed')) {
+                        element.backgroundColor = element.prop("backgroundColor");
                         toCollapse.push(element);//stores the actor in order to collapse it again afterwards
                         element.uncollapse();
                     }
@@ -203,7 +205,7 @@ istar.fileManager = function() {
             });
 
             _.forEach(toCollapse, function (actor) {
-                modelJSON.display[actor.id] = {collapsed: true};//add the collapsing information to the save file
+                modelJSON.display[actor.id] = {collapsed: true, backgroundColor: actor.backgroundColor };//add the collapsing information to the save file
                 actor.collapse();//collapses the actor, thus returning it to its original state
             });
 
@@ -280,8 +282,7 @@ istar.fileManager = function() {
                 if (newTab) {
                     window.open("data:text/json;charset=utf-8," + encodeURI(stringifiedModel));//this open the content of the file in a new tab
                 }
-                console.log(stringifiedModel);
-
+                // console.log(stringifiedModel);
                 return stringifiedModel;
             }
         },
@@ -341,41 +342,39 @@ istar.fileManager = function() {
                     //create dependencies
                     for (i = 0; i < inputModel.dependencies.length; i++) {
                         var element = inputModel.dependencies[i];
-                        var depender = istar.graph.getCell(element.source);
+                        if (element == null)
+                            continue
+                        console.log(element)
+                        var depender = null
+                        if (element.source!=null)
+                             depender = istar.graph.getCell(element.source);
                         var dependum = addLoadedElement(element, inputModel.display);
-                        var dependee = istar.graph.getCell(element.target);
+                        var dependee = null
+                        if (element.target!=null)
+                             dependee = istar.graph.getCell(element.target);
 
+			/*
                         var isValid = istar.metamodel.dependencyLinks['DependencyLink'].isValid(depender, dependee, (dependum.prop('type') + 'DependencyLink'));
                         if (!isValid.isValid) {
                             processInvalidLink('DependencyLink', depender, dependee, isValid);
                         }
+			*/
 
                         var links = istar.addDependency(depender, dependum, dependee);
-                        links[0].on('change:vertices', ui._toggleSmoothness);
-                        links[1].on('change:vertices', ui._toggleSmoothness);
-
                         for (var j = 0; j < inputModel.links.length; j++) {
+                            if (links[j]==null)
+                                continue
+                            links[j].on('change:vertices', ui._toggleSmoothness);
                             var linkJSON = inputModel.links[j];
                             if (linkJSON.target === element.id) {
                                 if (inputModel.display && inputModel.display[linkJSON.id] && inputModel.display[linkJSON.id].vertices) {
-                                    links[0].set('vertices', inputModel.display[linkJSON.id].vertices);
+                                    links[j].set('vertices', inputModel.display[linkJSON.id].vertices);
                                 }
                                 if (linkJSON.name) {
-                                    links[0].prop('name', linkJSON.name);
+                                    links[j].prop('name', linkJSON.name);
                                 }
                                 if (linkJSON.customProperties) {
-                                    links[0].prop('customProperties', linkJSON.customProperties);
-                                }
-                            }
-                            if (linkJSON.source === element.id) {
-                                if (inputModel.display && inputModel.display[linkJSON.id] && inputModel.display[linkJSON.id].vertices) {
-                                    links[1].set('vertices', inputModel.display[linkJSON.id].vertices);
-                                }
-                                if (linkJSON.name) {
-                                    links[1].prop('name', linkJSON.name);
-                                }
-                                if (linkJSON.customProperties) {
-                                    links[1].prop('customProperties', linkJSON.customProperties);
+                                    links[j].prop('customProperties', linkJSON.customProperties);
                                 }
                             }
                         }
@@ -481,9 +480,11 @@ istar.fileManager = function() {
                         if (linkJSON.customProperties) {
                             newLink.prop('customProperties', linkJSON.customProperties);
                         }
-                        var shapeObject = new istar.metamodel.nodeLinks[typeNameWithoutPrefix].shapeObject();
-                        if (shapeObject.attr('smooth')) {
-                            newLink.on('change:vertices', ui._toggleSmoothness);
+                        if (istar.metamodel.nodeLinks[typeNameWithoutPrefix]) {
+                            var shapeObject = new istar.metamodel.nodeLinks[typeNameWithoutPrefix].shapeObject();
+                            if (shapeObject.attr('smooth')) {
+                                newLink.on('change:vertices', ui._toggleSmoothness);
+                            }
                         }
                         return newLink;
                     } else {

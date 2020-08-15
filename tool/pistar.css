@@ -330,15 +330,15 @@ svg * {
 }
 
 #sidepanel.size1 {
-  width: 2vw;
+ width: 2vw;
 }
 
 #sidepanel.size2 {
-  width: 17vw;
+  width: 10vw;
 }
 
 #sidepanel.size3 {
-  width: 30vw;
+ width: 30vw;
 }
 
 #sidepanel .nav {

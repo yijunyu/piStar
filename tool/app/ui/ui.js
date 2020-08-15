@@ -6,7 +6,7 @@
  * https://github.com/jhcp/pistar
  */
 
-var ui = function() {
+var ui = function () {
     'use strict';
 
     var selectedCell = null;
@@ -32,7 +32,7 @@ var ui = function() {
                 },
                 VIEWING: 2,
                 EDITING_TEXT: 3,
-                isAdding: function() {
+                isAdding: function () {
                     return (this.current === this.ADDING.ADD_CONTAINER || this.current === this.ADDING.ADD_NODE || this.current === this.ADDING.ADD_LINK);
                 },
                 isAddingContainer: function () {
@@ -91,11 +91,11 @@ var ui = function() {
 
         defaultElementBackgroundColor: '#CCFACD',
 
-        getSelectedCells: function() {
+        getSelectedCells: function () {
             return [this.selectedCell];
         },
-        getSelectedCellsAmount: function() {
-            if (! this.getSelectedCells()[0].isCell()) {
+        getSelectedCellsAmount: function () {
+            if (!this.getSelectedCells()[0].isCell()) {
                 //if the paper is selected
                 return 0;
             }
@@ -103,7 +103,7 @@ var ui = function() {
                 return _.size(this.getSelectedCells());
             }
         },
-        selectCell: function(cell) {
+        selectCell: function (cell) {
             if (cell) {
                 var toTrigger = false;
                 if (this.selectedCell && this.selectedCell !== cell) {
@@ -118,7 +118,7 @@ var ui = function() {
                 this.selectedCell = cell;
 
                 if (toTrigger) {
-                    istar.paper.trigger('change:selection', {selectedCell: cell});
+                    istar.paper.trigger('change:selection', { selectedCell: cell });
                 }
                 if (cell.isElement()) {
                     $('#sidepanel-tab-style').show();
@@ -128,20 +128,20 @@ var ui = function() {
                 }
             }
         },
-        deselectCell: function(_cell) {
+        deselectCell: function (_cell) {
             var cell = _cell || ui.selectedCell;
             if (cell) {
                 //actual selection change
                 this.selectedCell = null;
 
-                istar.paper.trigger('change:selection', {deselectedCell: cell});
+                istar.paper.trigger('change:selection', { deselectedCell: cell });
             }
         },
-        selectPaper: function() {
+        selectPaper: function () {
             if (this.selectedCell !== istar.graph) {
                 this.deselectCell();
                 this.selectedCell = istar.graph;
-                istar.paper.trigger('change:selection', {selectedCell: istar.graph});
+                istar.paper.trigger('change:selection', { selectedCell: istar.graph });
 
                 //closes any color picker that may be open
                 $('.jscolor').each(function () {
@@ -152,11 +152,11 @@ var ui = function() {
                 $('#sidepanel-tab-properties a').tab('show');
             }
         },
-        hideSelection: function() {
+        hideSelection: function () {
             $('#resize-handle').hide();
             $('.cell-selection').hide();
         },
-        showSelection: function(_cell) {
+        showSelection: function (_cell) {
             var cell = _cell || this.selectedCell;
             var cellView = istar.paper.findViewByModel(cell);
             if (cellView) {
@@ -164,23 +164,23 @@ var ui = function() {
 
                 //positioning and display of the selection box
                 $('.cell-selection').css({
-                    left: cellBox.x-6 + 'px',
-                    top: cellBox.y-6 + 'px',
+                    left: cellBox.x - 6 + 'px',
+                    top: cellBox.y - 6 + 'px',
                     width: (cellBox.width + 12.5) + 'px',
                     height: (cellBox.height + 12) + 'px'
                 });
                 $('.cell-selection').show();
 
                 //positioning and display of the resizing handle, when applicable
-                if (cellView.model.isElement() && (! cellView.model.isKindOfActor()) ) {
-                    $('#resize-handle').css({left: cellBox.x - 2 + cellBox.width, top: cellBox.y - 2 + cellBox.height});
+                if (cellView.model.isElement() && (!cellView.model.isKindOfActor())) {
+                    $('#resize-handle').css({ left: cellBox.x - 2 + cellBox.width, top: cellBox.y - 2 + cellBox.height });
                     $('#resize-handle').show();
                 }
 
             }
         },
-        collectActionData: function(a,b,c) {console.log(a,b,c); /* empty function added when deploying */ },
-        collectErrorData: function() { /* empty function added when deploying */ }
+        collectActionData: function (a, b, c) { console.log(a, b, c); /* empty function added when deploying */ },
+        collectErrorData: function () { /* empty function added when deploying */ }
     };
 }();
 
@@ -190,7 +190,7 @@ ui.defineInteractions = function () {
     //this redefinition was used, instead of on('remove'), because when the 'remove' event is triggered the
     //node has already been removed, thus it would be too late to know whom is the parent
     var originalRemove = joint.dia.Cell.prototype.remove;
-    joint.dia.Cell.prototype.remove = function(opt) {
+    joint.dia.Cell.prototype.remove = function (opt) {
         var parent = this.get('parent');
         originalRemove.call(this, opt);
         if (parent) {
@@ -198,18 +198,18 @@ ui.defineInteractions = function () {
         }
     };
 
-    istar.graph.on('add', function(cell) {
+    istar.graph.on('add', function (cell) {
         if (cell.isElement()) {
-            cell.on('change:name', function(node, newValue) {
+            cell.on('change:name', function (node, newValue) {
                 node.setNodeLabel(newValue);
             });
         }
         else if (cell.isLink()) {
-            var verticesTool = new joint.linkTools.Vertices({snapRadius: 1});
-            var toolsView = new joint.dia.ToolsView({tools: [verticesTool]});
+            var verticesTool = new joint.linkTools.Vertices({ snapRadius: 1 });
+            var toolsView = new joint.dia.ToolsView({ tools: [verticesTool] });
             cell.findView(istar.paper).addTools(toolsView).hideTools();
-            cell.on('change:vertices', function(linkModel, a, b) {
-                if (! b.translateBy) {
+            cell.on('change:vertices', function (linkModel, a, b) {
+                if (!b.translateBy) {
                     //this if prevents updating the selection when the link is being translated along with its parent
                     ui.showSelection();
                 }
@@ -217,36 +217,36 @@ ui.defineInteractions = function () {
         }
     });
 
-    istar.paper.on('link:mouseenter', function(linkView) {
+    istar.paper.on('link:mouseenter', function (linkView) {
         //highlights a hovered link, which indicates to the user that it is interactive
         linkView.showTools();
         linkView.model.attr('connection-wrap/strokeWidth', 30);
         linkView.model.attr('connection-wrap/stroke', 'rgba(190, 190, 190, 1)');
     });
 
-    istar.paper.on('link:pointerdblclick', function(linkView, a, b) {
+    istar.paper.on('link:pointerdblclick', function (linkView, a, b) {
         //hide link tools when a vertex is removed
         linkView.hideTools();
         linkView.model.attr('connection-wrap/stroke', 'transparent');
     });
 
-    istar.paper.on('link:pointerup', function(linkView) {
+    istar.paper.on('link:pointerup', function (linkView) {
         ui.selectCell(linkView.model, linkView);
     });
 
-    istar.paper.on('link:mouseleave', function(linkView) {
+    istar.paper.on('link:mouseleave', function (linkView) {
         linkView.hideTools();
         linkView.model.attr('connection-wrap/stroke', 'rgba(190, 190, 190, 0)');
     });
 
-    istar.paper.on('change:selection', function(selection) {
+    istar.paper.on('change:selection', function (selection) {
         if (selection.selectedCell) {
-            ui.table = new ui.components.PropertiesTableView({model: selection.selectedCell}).render();
+            ui.table = new ui.components.PropertiesTableView({ model: selection.selectedCell }).render();
             if (selection.selectedCellView) {
                 ui.showSelection(selection.selectedCell);
             }
         }
-        else if (selection.deselectedCell){
+        else if (selection.deselectedCell) {
             ui.hideSelection();
             ui.table.remove();
             $('#properties-table').find('tbody').html('');
@@ -262,17 +262,19 @@ ui.defineInteractions = function () {
             ui.selectPaper();
         }
         if (ui.states.editor.isAddingContainer()) {
-            ui.addElementOnPaper({position: {x: x, y: y}});
+            ui.addElementOnPaper({ position: { x: x, y: y } });
         }
         if (ui.states.editor.isAddingNode()) {
             //gets a default bbox (first node in the metamodel) to use as bbox for positioning the
             //element in the diagram
             var nodes = _.keys(istar.metamodel.nodes);
             var bbox = (new istar.metamodel.nodes[nodes[0]].shapeObject()).getBBox();
-            ui.addElementOnPaper({position: {
-                    x: x - bbox.width/2,
-                    y: y - bbox.height/2
-                }});
+            ui.addElementOnPaper({
+                position: {
+                    x: x - bbox.width / 2,
+                    y: y - bbox.height / 2
+                }
+            });
         }
     });
 
@@ -285,17 +287,17 @@ ui.defineInteractions = function () {
 
         //highlights a container when it is hovered
         if (cellView.model.isKindOfActor()) {
-            cellView.$('.boundary').css({stroke: containerHighlightStrokeColor, 'stroke-width': '4', fill: '#ddd'});
-            cellView.$('.actorSymbol').css({stroke: containerHighlightStrokeColor, 'stroke-width': '3'});
-            cellView.$('.actorDecorator').css({stroke: containerHighlightStrokeColor, 'stroke-width': '2'});
+            cellView.$('.boundary').css({ stroke: containerHighlightStrokeColor, 'stroke-width': '4', fill: '#ddd' });
+            cellView.$('.actorSymbol').css({ stroke: containerHighlightStrokeColor, 'stroke-width': '3' });
+            cellView.$('.actorDecorator').css({ stroke: containerHighlightStrokeColor, 'stroke-width': '2' });
         }
         else {
             //if a node inside a container is hovered, highlight the container
             if (cellView.model.get('parent')) {
                 var parentView = istar.paper.findViewByModel(istar.graph.getCell(cellView.model.get('parent')));
-                parentView.$('.boundary').css({stroke: containerHighlightStrokeColor, 'stroke-width': '4', fill: '#ddd'});
-                parentView.$('.actorSymbol').css({stroke: containerHighlightStrokeColor, 'stroke-width': '3'});
-                parentView.$('.actorDecorator').css({stroke: containerHighlightStrokeColor, 'stroke-width': '2'});
+                parentView.$('.boundary').css({ stroke: containerHighlightStrokeColor, 'stroke-width': '4', fill: '#ddd' });
+                parentView.$('.actorSymbol').css({ stroke: containerHighlightStrokeColor, 'stroke-width': '3' });
+                parentView.$('.actorDecorator').css({ stroke: containerHighlightStrokeColor, 'stroke-width': '2' });
             }
 
             //highlight the hovered element and its neighbors
@@ -328,7 +330,7 @@ ui.defineInteractions = function () {
                     _.forEach(istar.graph.getConnectedLinks(cellView.model), function (link) {
                         //CSS opacity currently does not work for elements inside an SVG in Chrome
                         //thus, model.attr() is used instead of view.css()
-                        if (! link.isDependencyLink()) {
+                        if (!link.isDependencyLink()) {
                             link.prop('partiallyHiddenOpacity', link.attr('path/opacity'));
                             link.attr('path/opacity', 1);
                             link.attr('.labels/opacity', 1);
@@ -341,15 +343,15 @@ ui.defineInteractions = function () {
     istar.paper.on('cell:mouseout', function (cellView, evt, x, y) {
         //by emptying the CSS style, the element returns to its SVG values, thus returning to its style prior to hovering
         if (cellView.model.isKindOfActor()) {
-            cellView.$('.boundary').css({stroke: '', 'stroke-width': '', fill: ''});
-            cellView.$('.actorSymbol').css({stroke: '', 'stroke-width': ''});
-            cellView.$('.actorDecorator').css({stroke: '', 'stroke-width': ''});
+            cellView.$('.boundary').css({ stroke: '', 'stroke-width': '', fill: '' });
+            cellView.$('.actorSymbol').css({ stroke: '', 'stroke-width': '' });
+            cellView.$('.actorDecorator').css({ stroke: '', 'stroke-width': '' });
         }
         else {
             if (cellView.model.get('parent')) {
                 var parentView = istar.paper.findViewByModel(istar.graph.getCell(cellView.model.get('parent')));
-                parentView.$('.boundary').css({stroke: '', 'stroke-width': '', fill: ''});
-                parentView.$('.actorSymbol').css({stroke: '', 'stroke-width': ''});
+                parentView.$('.boundary').css({ stroke: '', 'stroke-width': '', fill: '' });
+                parentView.$('.actorSymbol').css({ stroke: '', 'stroke-width': '' });
             }
 
             //unhighlight the previously hovered element and its neighbors
@@ -381,7 +383,7 @@ ui.defineInteractions = function () {
                     _.forEach(istar.graph.getConnectedLinks(cellView.model), function (link) {
                         //CSS opacity currently does not work for elements inside an SVG in Chrome
                         //thus, model.attr() is used instead of view.css()
-                        if (! link.isDependencyLink()) {
+                        if (!link.isDependencyLink()) {
                             link.attr('path/opacity', link.prop('partiallyHiddenOpacity'));
                             link.attr('.labels/opacity', link.prop('partiallyHiddenOpacity'));
                             link.prop('partiallyHiddenOpacity', null);
@@ -392,7 +394,7 @@ ui.defineInteractions = function () {
         }
     });
     istar.paper.on('cell:pointerdown', function (cellView, evt, x, y) {
-        if (! ui.states.editor.isAdding()) {
+        if (!ui.states.editor.isAdding()) {
             if (!cellView.model.isLink()) {
                 ui.selectCell(cellView.model, cellView);
             }
@@ -410,7 +412,7 @@ ui.defineInteractions = function () {
         var currentAddingElement = ui.states.editor.ADDING.data.typeNameToAdd;
 
         if (ui.states.editor.isAddingNode()) {
-            ui.addElementOnContainer(cellView, {position: {x: x, y: y}});
+            ui.addElementOnContainer(cellView, { position: { x: x, y: y } });
 
             //if adding a node to a collapsed container, expand the container. Otherwise it would look like
             //the node was added directly to the paper
@@ -492,7 +494,7 @@ ui.defineInteractions = function () {
                             }
                         }
                     }
-                    if (! isValid.isValid) {
+                    if (!isValid.isValid) {
                         ui.displayInvalidLinkMessage(isValid.message);
                     }
 
@@ -511,6 +513,16 @@ ui.defineInteractions = function () {
                     cellView.model.toggleCollapse();
                     ui.showSelection();//give the focus back to actor, now collapsed or expanded
                 }
+            } else if (evt.shiftKey) {
+                if (cellView.model.isKindOfActor()) {
+                    ui.hideSelection();
+                    cellView.model.layout();
+                    ui.showSelection();//give the focus back to actor, now collapsed or expanded
+                }
+            }
+            if (cellView.model.isKindOfActor()) {
+                var actor_id = istar.graph.getCell(cellView.model).prop("id");            
+                istar.fileManager.selected_actor = actor_id
             }
 
             //increase the drawing area if there is an element beyond its edges
@@ -525,21 +537,21 @@ ui.defineInteractions = function () {
             //Round the numbers of the new dimension since:
             // a) Precision is not relevant here
             // b) Int numbers are easier for the user to handle (when manually changing the size)
-            if (cellBBox.y + cellBBox.height > paperHeight ) {
+            if (cellBBox.y + cellBBox.height > paperHeight) {
                 //if the element is beyond the bottom edge
                 istar.paper.setDimensions(paperWidth, Math.round(cellBBox.y + cellBBox.height + 40));
             }
-            if (cellBBox.x + cellBBox.width > paperWidth ) {
+            if (cellBBox.x + cellBBox.width > paperWidth) {
                 //if the element is beyond the right edge
                 istar.paper.setDimensions(Math.round(cellBBox.x + cellBBox.width + 40));
             }
-            if (cellBBox.x < 0 ) {
+            if (cellBBox.x < 0) {
                 //if the element is beyond the left edge
                 var delta = Math.round(40 - cellBBox.x);
                 istar.paper.setDimensions(paperWidth + delta);
                 istar.graph.translate(delta, 0);
             }
-            if (cellBBox.y < 0 ) {
+            if (cellBBox.y < 0) {
                 //if the element is beyond the left edge
                 var delta = Math.round(40 - cellBBox.y);
                 istar.paper.setDimensions(paperWidth, paperHeight + delta);
@@ -551,7 +563,7 @@ ui.defineInteractions = function () {
     });
 
     istar.paper.on('cell:pointerdblclick', function (cellView, evt, x, y) {
-        if ( ! (evt.ctrlKey || evt.altKey) ) {
+        if (!(evt.ctrlKey || evt.altKey)) {
             var newText;
             if (cellView.model.isElement()) {
                 ui.showSelection();
@@ -589,7 +601,7 @@ ui.addElementOnPaper = function (options) {
 
     try {
         var currentAddingElement = ui.states.editor.ADDING.data.typeNameToAdd;
-        var isValid = {isValid: false};
+        var isValid = { isValid: false };
         if (ui.states.editor.isAddingNode()) {
             if (istar.metamodel.nodes[currentAddingElement]) {
                 if (istar.metamodel.nodes[currentAddingElement].canBeOnPaper) {
@@ -637,7 +649,7 @@ ui.addElementOnContainer = function (cellView, options) {
 
     try {
         var currentAddingElement = ui.states.editor.ADDING.data.typeNameToAdd;
-        var isValid = {isValid: false};
+        var isValid = { isValid: false };
         if (istar.metamodel.nodes[currentAddingElement]) {
             if (istar.metamodel.nodes[currentAddingElement].canBeInnerElement) {
                 isValid = istar.metamodel.nodes[currentAddingElement].isValid(cellView.model);
@@ -652,8 +664,8 @@ ui.addElementOnContainer = function (cellView, options) {
         if (isValid.isValid) {
             //centers the position
             var bbox = (new istar.metamodel.nodes[currentAddingElement].shapeObject()).getBBox();
-            options.position.x -= bbox.width/2;
-            options.position.y -= bbox.height/2;
+            options.position.x -= bbox.width / 2;
+            options.position.y -= bbox.height / 2;
 
             var element = ui.addNodeInPlace(cellView.model, istar['add' + currentAddingElement], options);
 
@@ -691,15 +703,17 @@ ui.addDependency = function (source, dependencyType, target) {
     'use strict';
 
     var node = '';
-    var position = {x: 10, y: 10};
+    var position = { x: 10, y: 10 };
     var text = 'Dependum';
 
     var dependumType = dependencyType.replace('DependencyLink', '');
     node = istar['add' + dependumType](text, position);
 
     var links = istar.addDependency(source, node, target);
-    links[0].on('change:vertices', ui._toggleSmoothness);
-    links[1].on('change:vertices', ui._toggleSmoothness);
+    if (links[0]!=null)
+        links[0].on('change:vertices', ui._toggleSmoothness);
+    if (links[1]!=null)
+        links[1].on('change:vertices', ui._toggleSmoothness);
 
     ui.setupDependencyRemoval(links);
 
@@ -714,26 +728,30 @@ ui.setupDependencyRemoval = function (links) {
     //when any of its links is deleted
     //this is needed when a depender or dependee is deleted, so that
     //the dependency will not be left dangling in the diagram
-    links[0].on('remove', function(){
-        if (this.getSourceElement() && this.getSourceElement().isDependum()) {
-            this.getSourceElement().remove({ disconnectLinks: true });
-            this.prop('otherHalf').remove();
-        }
-        if (this.getTargetElement() && this.getTargetElement().isDependum()) {
-            this.getTargetElement().remove({ disconnectLinks: true });
-            this.prop('otherHalf').remove();
-        }
-    });
-    links[1].on('remove', function(){
-        if (this.getSourceElement() && this.getSourceElement().isDependum()) {
-            this.getSourceElement().remove({ disconnectLinks: true });
-            this.prop('otherHalf').remove();
-        }
-        if (this.getTargetElement() && this.getTargetElement().isDependum()) {
-            this.getTargetElement().remove({ disconnectLinks: true });
-            this.prop('otherHalf').remove();
-        }
-    });
+    if (links[0]!=null) {
+        links[0].on('remove', function () {
+            if (this.getSourceElement() && this.getSourceElement().isDependum()) {
+                this.getSourceElement().remove({ disconnectLinks: true });
+                this.prop('otherHalf').remove();
+            }
+            if (this.getTargetElement() && this.getTargetElement().isDependum()) {
+                this.getTargetElement().remove({ disconnectLinks: true });
+                this.prop('otherHalf').remove();
+            }
+        });    
+    }
+    if (links[1]!=null) {
+        links[1].on('remove', function () {
+            if (this.getSourceElement() && this.getSourceElement().isDependum()) {
+                this.getSourceElement().remove({ disconnectLinks: true });
+                this.prop('otherHalf').remove();
+            }
+            if (this.getTargetElement() && this.getTargetElement().isDependum()) {
+                this.getTargetElement().remove({ disconnectLinks: true });
+                this.prop('otherHalf').remove();
+            }
+        });    
+    }
 };
 
 ui.addNodeInPlace = function (clickedNode, callback, options) {
@@ -764,7 +782,7 @@ ui.changeColorBoundaries = function (color) {
 
     _.map(istar.getElements(), function (node) {
         if (node.isKindOfActor()) {
-            node.attr('.boundary', {fill: color});
+            node.attr('.boundary', { fill: color });
         }
     });
 };
@@ -779,7 +797,7 @@ ui.changeColorElement = function (color, element) {
     'use strict';
 
     element = element || ui.getSelectedCells()[0];
-    element.attr('.element', {fill: color});
+    element.attr('.element', { fill: color });
 
     //stores the color in a property for use when saving the model
     if (color === ui.defaultElementBackgroundColor) {
@@ -809,10 +827,13 @@ ui.connectLinksToShape = function () {
 
 $('#menu-button-save-model').click(function () {
     'use strict';
-
     var model = istar.fileManager.saveModel();
-    var csvData = 'data:text/json;charset=utf-8,' + (encodeURI(model));
-    joint.util.downloadDataUri(csvData, 'goalModel.txt');
+    var jsonData = 'data:text/json;charset=utf-8,' + (encodeURI(model));
+    joint.util.downloadDataUri(jsonData, 'goalModel.json');
+    var remote = require('electron').remote;
+    remote.getGlobal('goalModel') = jsonData;     
+    var ipcRenderer = require('electron').ipcRenderer;     
+    ipcRenderer.send('setGoalModel');
 });
 
 $('#modal-button-load-model').click(function () {
@@ -889,14 +910,14 @@ ui.setupUi = function () {
         var originalFunction = null;
 
         originalFunction = istar.clearModel;
-        istar.clearModel = function() {
+        istar.clearModel = function () {
             originalFunction();
             ui.selectPaper();
         };
     }
 };
 
-ui.setupSaveImageModal = function() {
+ui.setupSaveImageModal = function () {
     'use strict';
 
     //save model when Enter is pressed
@@ -944,7 +965,7 @@ ui.setupSaveImageModal = function() {
             //Adjust the size of the model, to prevent empty spaces in the image
             var originalWidth = istar.paper.getArea().width;
             var originalHeight = istar.paper.getArea().height;
-            istar.paper.fitToContent({padding: 10, allowNewOrigin: 'any'});
+            istar.paper.fitToContent({ padding: 10, allowNewOrigin: 'any' });
 
             if ($('#input-file-format').val() === "SVG") {
                 var svgData = istar.fileManager.saveSvg(istar.paper);
@@ -961,7 +982,7 @@ ui.setupSaveImageModal = function() {
 
             //restore the paper to its initial state
             istar.paper.setDimensions(originalWidth, originalHeight);
-            istar.paper.translate(0,0);
+            istar.paper.translate(0, 0);
 
             //show the UI elements back again
             $('.marker-vertices, .link-tools, .marker-arrowheads, .remove-element').show();
@@ -981,8 +1002,8 @@ ui.setupPluginMenu = function () {
 
     //listen for changes in the plugin menus, displaying it if some element is added to it
     var targetNode = document.getElementById('menu-plugin');
-    var config = {childList: true, subtree: true }; // Options for the observer (which mutations to observe)
-    var observer = new MutationObserver(function(mutationsList, observer) {
+    var config = { childList: true, subtree: true }; // Options for the observer (which mutations to observe)
+    var observer = new MutationObserver(function (mutationsList, observer) {
         $('#menu-item-plugin').show();
         $('#logo').html('piStar plugin');
         $('.menu-bar').addClass('plugged');
@@ -1000,7 +1021,7 @@ ui.setupDiagramSizeInputs = function () {
     $('#input-diagram-height').val(istar.paper.getArea().height);
 
     //setup to update the inputs' values whenever the diagram's size is changed
-    istar.paper.on('resize', function(width, height) {
+    istar.paper.on('resize', function (width, height) {
         $('#input-diagram-width').val(width);
         $('#input-diagram-height').val(height);
     });
@@ -1060,7 +1081,7 @@ ui.setupMainMenuInteraction = function () {
                 target.removeClass('hidden');
                 target.slideDown(200);
 
-                $('#star').css("-transform","rotate(0deg)");
+                $('#star').css("-transform", "rotate(0deg)");
             }
             else if ($(this).attr('id') !== currentMenuItem.attr('id')) {
                 //some menu is already displayed, a different one will be displayed
@@ -1073,7 +1094,7 @@ ui.setupMainMenuInteraction = function () {
                 currentMenuItem = $(this);
 
                 //select and show the clicked menu
-                currentMenuItem .addClass('active');
+                currentMenuItem.addClass('active');
                 target.removeClass('hidden');
                 target.slideDown(0);
 
@@ -1086,7 +1107,7 @@ ui.setupMainMenuInteraction = function () {
                     $(currentMenuItem).removeClass('active');
                     currentMenuItem = null;
                 });
-                $('#star').css("-transform","rotate(-180deg)");
+                $('#star').css("-transform", "rotate(-180deg)");
             }
         });
     });
@@ -1228,7 +1249,7 @@ ui.changeCustomPropertyValue = function (model, propertyName, propertyValue) {
 $('#fit-to-content-button').click(function () {
     'use strict';
 
-    istar.paper.fitToContent({padding: 20, allowNewOrigin: 'any'});
+    istar.paper.fitToContent({ padding: 20, allowNewOrigin: 'any' });
 });
 
 $('#reset-all-colors-button').click(function () {
@@ -1380,7 +1401,7 @@ ui.prompt = function (options) {
     };
     options.swapButtonOrder = true;
     bootbox.prompt(options)
-        .on('shown.bs.modal', function(e){
+        .on('shown.bs.modal', function (e) {
             //Automatically select the content of the input, so that the user doesn't have to
             $(this).find('input').select();
         });

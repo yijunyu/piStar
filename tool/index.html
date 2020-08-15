@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <!--suppress SpellCheckingInspection, HtmlUnknownTarget -->
-
 <!--
 This is open-source. Which means that you can contribute to it, and help
 make it better! Also, feel free to use, modify, redistribute, and so on.
@@ -26,8 +25,9 @@ https://github.com/jhcp/pistar
     <!-- library-specific styles -->
     <link href="app/istarcore/lib/joint.min.css" rel="stylesheet"> <!-- joint js -->
     <link href="app/ui/lib/bootstrap3-editable/bootstrap-editable.css" rel="stylesheet"> <!-- x-editable -->
-    <!-- tool styles -->
+        <!-- tool styles -->
     <link href="pistar.css" rel="stylesheet">
+    <script src="goalModel.js"></script>
 </head>
 
 <body>
@@ -51,8 +51,8 @@ https://github.com/jhcp/pistar
         <div id="menu-file" class="menu-body hidden">
             <div class="menu-group">
                 <div class="menu-line">
-                    <a class="btn btn-default button-vertical" id="menu-button-new-model" title="Create a new model in the same window">
-                        <!--data-toggle="modal" data-target="#modal-new-model"-->
+                    <a class="btn btn-default button-vertical" id="menu-button-new-model" title="Create a new model in the same window"
+                        data-toggle="modal" data-target="#modal-new-model">
                         <span class="glyphicon glyphicon-file" aria-hidden="true"></span><br>
                         New Model
                     </a>
@@ -202,8 +202,7 @@ https://github.com/jhcp/pistar
         <div id="menu-help" class="menu-body hidden">
             <div class="menu-group">
                 <div class="menu-line">
-
-                    <a id="menu-button-examples" class="btn btn-default" data-toggle="modal" data-target="#modal-examples">Examples</a>
+                    <!-- <a id="menu-button-examples" class="btn btn-default" data-toggle="modal" data-target="#modal-examples">Examples</a> -->
                     <a id="menu-button-quickhelp" class="btn btn-default" data-toggle="modal" data-target="#modal-instructions">Quick Help</a>
                     <a id="menu-button-language-guide" class="btn btn-default" href="https://sites.google.com/site/istarlanguage/" target="_blank">
                         iStar 2.0 Language Guide <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span>
@@ -434,7 +433,7 @@ https://github.com/jhcp/pistar
         </div>
     </div>
 
-    <div class="modal fade" id="modal-examples" tabindex="-1" role="dialog" aria-labelledby="label-examples-modal">
+    <!-- <div class="modal fade" id="modal-examples" tabindex="-1" role="dialog" aria-labelledby="label-examples-modal">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -461,7 +460,7 @@ https://github.com/jhcp/pistar
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <div class="modal fade" id="modal-instructions" tabindex="-1" role="dialog" aria-labelledby="label-instructions-modal">
         <div class="modal-dialog modal-lg" role="document">
@@ -482,7 +481,8 @@ https://github.com/jhcp/pistar
                     <h4>Change</h4>
                     <ul>
                         <li>To change the name of an element: double-click it.</li>
-                        <li>To collapse/expand an actor/role/agent: press <kbd>alt</kbd> and click it.</li>
+                        <li>To collapse/expand an actor/role/agent: press <kbd>ctrl or alt</kbd> and click it.</li>
+                        <li>To layout an actor/role/agent: press <kbd>shift</kbd> and click it.</li>
                         <li>To change the diagram size: use the <em>Options</em> menu.</li>
                     </ul>
                     <h4>Delete</h4>
@@ -544,6 +544,8 @@ https://github.com/jhcp/pistar
 <script src="app/ui/lib/bootbox/bootbox.min.js"></script>
 
 <!-- istar core -->
+<script src="node_modules/dagre/dist/dagre.js"></script>
+
 <script src="app/istarcore/istarFunctions.js"></script>
 <script src="app/istarcore/metamodelManager.js"></script>
 <script src="app/istarcore/fileManager.js"></script>

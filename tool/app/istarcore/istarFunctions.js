@@ -17,43 +17,43 @@
 var istar = function () {
     'use strict';
 
-    function _setLinkLabel (value) {
+    function _setLinkLabel(value) {
         /* jshint validthis: true */
         /* this function is meant to be added to a prototype */
 
-        this.label(0, {attrs: {text: {text: '' + value + ''}}});
+        this.label(0, { attrs: { text: { text: '' + value + '' } } });
         return this;
     }
 
     //prototype functions
-    function _setNodeLabel (content) {
+    function _setNodeLabel(content) {
         /* jshint validthis: true */
         /* this function is meant to be added to a prototype */
 
         var breakWidth = 90;
-        if (! this.isKindOfActor()) {
+        if (!this.isKindOfActor()) {
             breakWidth = this.getBBox().width;
         }
         else {
             //actors' width require a different approach, since the regular getBBox refers to the whole actor
-            breakWidth = joint.util.getElementBBox($('#'+ this.findView(istar.paper).id +' .actorSymbol')).width;
+            breakWidth = joint.util.getElementBBox($('#' + this.findView(istar.paper).id + ' .actorSymbol')).width;
         }
 
         content = $.trim(content) || '';
-        content = joint.util.breakText(content, {width: breakWidth});//add the line breaks automatically
+        content = joint.util.breakText(content, { width: breakWidth });//add the line breaks automatically
 
         this.attr('.content/text', content);//actually change the label
         return this;
     }
 
-    function _updateLineBreak () {
+    function _updateLineBreak() {
         /* jshint validthis: true */
         /* this function is meant to be added to a prototype */
 
         this.setNodeLabel(this.prop('name'));
     }
 
-    function _embedNode (node) {
+    function _embedNode(node) {
         /* jshint validthis: true */
         /* this function is meant to be added to a prototype */
 
@@ -65,11 +65,12 @@ var istar = function () {
         return node;
     }
 
-    function _collapse () {
+    function _collapse() {
         /* jshint validthis: true */
         /* this function is meant to be added to a prototype */
 
         var actor = this;//stores 'this' in a named variable so that it can be read by the anonymous function
+        var background = this.prop('backgroundColor');
         if (!this.prop('collapsed')) {
             this.attr('.boundary/display', 'none');//hide the actor's boundary
             _.forEach(this.getEmbeddedCells(), function (innerElement) {
@@ -79,24 +80,25 @@ var istar = function () {
                 var connectedLinks = istar.graph.getConnectedLinks(innerElement);
                 if (connectedLinks) {
                     _.forEach(connectedLinks, function (connectedLink) {
-                        if (connectedLink.isDependencyLink() ) {
+                        if (connectedLink.isDependencyLink()) {
                             if (connectedLink.get('source').id === innerElement.id) {
                                 connectedLink.prop('elementSource', innerElement.id);
-                                connectedLink.set('source', {id: actor.id, selector: '.element'});
+                                connectedLink.set('source', { id: actor.id, selector: '.element' });
                             }
                             else if (connectedLink.get('target').id === innerElement.id) {
                                 connectedLink.prop('elementTarget', innerElement.id);
-                                connectedLink.set('target', {id: actor.id, selector: '.element'});
+                                connectedLink.set('target', { id: actor.id, selector: '.element' });
                             }
                         }
                     });
                 }
             });
             this.prop('collapsed', true);
+            this.prop('backgroundColor', background);
         }
     }
 
-    function _expand () {
+    function _expand() {
         /* jshint validthis: true */
         /* this function is meant to be added to a prototype */
 
@@ -110,7 +112,7 @@ var istar = function () {
                 var connectedLinks = istar.graph.getConnectedLinks(actor);
                 if (connectedLinks) {
                     _.forEach(connectedLinks, function (connectedLink) {
-                        if (connectedLink.isDependencyLink() ) {
+                        if (connectedLink.isDependencyLink()) {
                             if (connectedLink.get('source').id === actor.id) {
                                 if (connectedLink.prop('elementSource')) {
                                     connectedLink.set('source', {
@@ -135,7 +137,7 @@ var istar = function () {
         }
     }
 
-    function _toggleCollapse () {
+    function _toggleCollapse() {
         /* jshint validthis: true */
         /* this function is meant to be added to a prototype */
 
@@ -147,7 +149,71 @@ var istar = function () {
         }
     }
 
-    function _updateActorBoundary () {
+    function _layout() {
+        var actor = this;
+        actor.collapse();
+        var a = istar.graph.getCell(this);
+        var actor_position = a.prop('position')
+        switch (a.layout_option) {
+            case "LR":
+                a.layout_option = "TB"; break;
+            case "TB":
+                a.layout_option = "LR"; break;
+            default:
+                a.layout_option = "LR"; break;
+        }
+        var g = new dagre.graphlib.Graph();
+        g.setGraph({});
+        g.setDefaultEdgeLabel(function () { return {}; });
+        g.graph().nodesep = g.graph().edgesep = 1;
+        g.graph().rankdir = a.layout_option;
+        _.forEach(actor.getEmbeddedCells(), function (innerElement) {
+            var id = innerElement.prop('id')
+            var type = innerElement.prop('type')
+            switch (type) {
+                case "Goal":
+                case "Resource":
+                case "Quality":
+                case "Task":
+                    var name = innerElement.prop('name')
+                    var size = innerElement.prop('size')
+                    g.setNode(id, { label: name, width: size.width, height: size.height });
+                    break;
+                default:
+                    var source = innerElement.prop('source').id
+                    var target = innerElement.prop('target').id
+                    g.setEdge(target, source);
+                    break;
+            }
+        });
+        dagre.layout(g);
+        g.nodes().forEach(function (v) {
+            var node = g.node(v);
+            _.forEach(actor.getEmbeddedCells(), function (innerElement) {
+                var id = innerElement.prop('id')
+                if (id == v) {
+                    var type = innerElement.prop('type')
+                    switch (type) {
+                        case "Goal":
+                        case "Resource":
+                        case "Quality":
+                        case "Task":
+                            var position = {
+                                x: node.x + actor_position.x,
+                                y: node.y + actor_position.y
+                            };
+                            innerElement.prop('position', position);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            });
+        });
+        actor.expand();
+    }
+
+    function _updateActorBoundary() {
         /* jshint validthis: true */
         /* this function is meant to be added to a prototype */
 
@@ -178,7 +244,7 @@ var istar = function () {
             // else {
             //     childBbox = child.getBBox();
             // }
-            if (! child.isLink()) {
+            if (!child.isLink()) {
                 childBbox = child.getBBox();
                 if (childBbox.x < newX) {
                     newX = childBbox.x;
@@ -199,9 +265,9 @@ var istar = function () {
         // `originalPosition` and `originalSize` in our handlers as a reaction
         // on the following `set()` call.
         this.set({
-            position: {x: newX, y: newY},
-            size: {width: newCornerX - newX, height: newCornerY - newY}
-        }, {skipParentHandler: true});
+            position: { x: newX, y: newY },
+            size: { width: newCornerX - newX, height: newCornerY - newY }
+        }, { skipParentHandler: true });
 
         if (this.attr('.boundary/width')) {
             this.attr({
@@ -213,12 +279,12 @@ var istar = function () {
         }
         else if (this.attr('.boundary/r')) {
             //tempative handling of circular boundaries
-            var largerDimension = (newCornerX - newX) >  (newCornerY - newY) ? (newCornerX - newX) : (newCornerY - newY);
+            var largerDimension = (newCornerX - newX) > (newCornerY - newY) ? (newCornerX - newX) : (newCornerY - newY);
             this.attr({
                 '.boundary': {
-                    cx: largerDimension/2,
-                    cy: largerDimension/2,
-                    r: largerDimension/2
+                    cx: largerDimension / 2,
+                    cy: largerDimension / 2,
+                    r: largerDimension / 2
                 }
             });
         }
@@ -327,6 +393,7 @@ var istar = function () {
                 prototype.uncollapse = _expand; /* @deprecated since version 2.0.0 - use 'expand' instead*/
                 prototype.expand = _expand;
                 prototype.toggleCollapse = _toggleCollapse;
+                prototype.layout = _layout;
                 prototype.embedNode = _embedNode;
                 prototype.updateBoundary = _updateActorBoundary;
             }
@@ -353,7 +420,7 @@ var istar = function () {
                 newNode.prop('originalSize', newNode.prop('size'));
 
                 if (newNode.attr('.stereotype')) {
-                    if (! newNode.attr('.stereotype/text')) {
+                    if (!newNode.attr('.stereotype/text')) {
                         newNode.attr('.stereotype/text', '<<' + nodeType.name + '>>');
                     }
                 }
@@ -361,9 +428,9 @@ var istar = function () {
                 return newNode;
             },
         },
-        displayInvalidModelMessages: function(messages) {
+        displayInvalidModelMessages: function (messages) {
             messages = messages || [];
-            _.forEach(messages, function(message) {
+            _.forEach(messages, function (message) {
                 console.log('INVALID: ' + message);
             });
         },
@@ -467,8 +534,8 @@ var istar = function () {
         addLinkBetweenActors: function (linkType, source, target) {
             var hasShape = istar.metamodel.shapesObject[linkType.name];
             var link = new linkType.shapeObject({
-                'source': {id: source.id},
-                'target': {id: target.id}
+                'source': { id: source.id },
+                'target': { id: target.id }
             });
             link.prop('type', linkType.name);
 
@@ -476,7 +543,7 @@ var istar = function () {
                 link.attr('label/text', linkType.label);
                 link.attr('label-background/text', linkType.label);
             }
-            else if (! hasShape) {
+            else if (!hasShape) {
                 link.attr('label/text', '<<' + linkType.name + '>>');
                 link.attr('label-background/text', '<<' + linkType.name + '>>');
             }
@@ -491,42 +558,51 @@ var istar = function () {
                 var shape = joint.shapes.istar.DependencyLink || joint.shapes.istar.DefaultContainerLink;
                 hasShape = false;
             }
-            var link1 = new shape({
-                'source': {id: depender.id, selector: '.element'},
-                'target': {id: dependum.id}
-            });
-            var link2 = new shape({
-                'source': {id: dependum.id},
-                'target': {id: dependee.id, selector: '.element'}
-            });
-            istar.graph.addCell(link1);
-            istar.graph.addCell(link2);
-
-            if (! hasShape) {
-                link1.attr('label/text', '<<DependencyLink>>');
-                link1.attr('label-background/text', '<<DependencyLink>>');
-                link2.attr('label/text', '<<DependencyLink>>');
-                link2.attr('label-background/text', '<<DependencyLink>>');
+            var link1 = null
+            if (depender!=null) {
+                link1 = new shape({
+                    'source': { id: depender.id, selector: '.element' },
+                    'target': { id: dependum.id }
+                });
+                istar.graph.addCell(link1);
+                if (!hasShape) {
+                    link1.attr('label/text', '<<DependencyLink>>');
+                    link1.attr('label-background/text', '<<DependencyLink>>');
+                }
+                link1.prop('type', 'DependencyLink');
+                //move links to the back, so that they don't appear on top of the element's shape
+                link1.toBack();    
+            }
+            var link2 = null
+            if (dependee != null) {
+                link2 = new shape({
+                    'source': { id: dependum.id },
+                    'target': { id: dependee.id, selector: '.element' }
+                });
+                istar.graph.addCell(link2);    
+                if (!hasShape) {
+                    link2.attr('label/text', '<<DependencyLink>>');
+                    link2.attr('label-background/text', '<<DependencyLink>>');
+                }
+                //stores a reference from one link to another, in order to be able so remove the other one if
+                //any of them is removed, thus preventing dangling dependencies
+                if (link1!=null) {
+                    link1.prop('otherHalf', link2);
+                    link2.prop('otherHalf', link1);
+                }
+                link2.prop('type', 'DependencyLink');
+                link2.toBack();
+                if (depender!=null) {
+                    var dependumPosition = {
+                        x: ((depender.prop('position/x') + dependee.prop('position/x')) / 2),
+                        y: ((depender.prop('position/y') + dependee.prop('position/y')) / 2)
+                    };    
+                    dependum.prop('position', dependumPosition);
+                }
             }
 
-            //stores a reference from one link to another, in order to be able so remove the other one if
-            //any of them is removed, thus preventing dangling dependencies
-            link1.prop('otherHalf', link2);
-            link2.prop('otherHalf', link1);
-
-            link1.prop('type', 'DependencyLink');
-            link2.prop('type', 'DependencyLink');
-
             dependum.prop('isDependum', true);
-            var dependumPosition = {
-                x: ((depender.prop('position/x') + dependee.prop('position/x')) / 2),
-                y: ((depender.prop('position/y') + dependee.prop('position/y')) / 2)
-            };
-            dependum.prop('position', dependumPosition);
 
-            //move links to the back, so that they don't appear on top of the element's shape
-            link1.toBack();
-            link2.toBack();
             //move all the actors even further back, so that they don't impede the visualization of the dependency links
             _.forEach(istar.graph.getElements(), function (element) {
                 if (element.isKindOfActor()) {
@@ -534,11 +610,15 @@ var istar = function () {
                 }
             });
 
-            return [link1, link2];
+            if (link1!=null && link2!=null)
+                return [link1, link2];
+            if (link1!=null)
+                return [link1];
+            return [link2]
         },
         addLinkBetweenNodes: function (linkType, source, target, value) {
             var hasShape = istar.metamodel.shapesObject[linkType.name];
-            var link = new linkType.shapeObject({'source': {id: source.id}, 'target': {id: target.id}});
+            var link = new linkType.shapeObject({ 'source': { id: source.id }, 'target': { id: target.id } });
             link.prop('type', linkType.name);
             istar.graph.addCell(link);
 
@@ -546,7 +626,7 @@ var istar = function () {
                 link.attr('label/text', linkType.label);
                 link.attr('label-background/text', linkType.label);
             }
-            else if (! hasShape) {
+            else if (!hasShape) {
                 link.attr('label/text', '<<' + linkType.name + '>>');
                 link.attr('label-background/text', '<<' + linkType.name + '>>');
             }
@@ -558,7 +638,7 @@ var istar = function () {
 
             if (linkType.changeableLabel) {
                 link.setContributionType = _setLinkLabel;
-                link.on('change:value', function(link, newValue) {
+                link.on('change:value', function (link, newValue) {
                     link.setContributionType(newValue);
                 });
             }
@@ -611,7 +691,7 @@ var istar = function () {
             if (typeName) {
                 _.forEach(currentLinksFromSource, function (link) {
                     isDuplicated = isDuplicated || (link.prop('type') === typeName && (link.getSourceElement() ===
-                        target || link.getTargetElement() === target) );
+                        target || link.getTargetElement() === target));
                 });
             }
             else {
