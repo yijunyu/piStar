@@ -1,19 +1,6 @@
-image:
-  file: .gitpod.Dockerfile
-tasks:
-  - name: iStar2 auto-rebuild
-    command: >
-      while find . -name '*.istar2' | xargs inotifywait -qqre modify .; do \
-        cd /workspace/piStar/tool/istar2;\
-        d=$(dirname $f);\
-        b=$(basename $d);\
-        ./merge.sh $b; \
-        gp preview $(gp url 5500)/tool/index.html; \
-      done
-  - name: Terminal
 ports:
   - port: 5500
     onOpen: open-preview
 tasks:
    - before: cp .bashrc ~/.bashrc
-     command: . .bashrc 
+     command: . .bashrc && cd tool/istar2 && make package.json && make && gp preview $(gp url 5500)
